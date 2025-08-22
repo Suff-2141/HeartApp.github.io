@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardioHealth Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%);
+            min-height: 100vh;
+            color: #2c3e50;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+        }
+
+        .section {
+            display: none;
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .section.active {
+            display: block;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .section.prev {
+            transform: translateX(-50px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+
+        .progress-container {
+            margin: 30px 0;
+            background: #ecf0f1;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        input[type="number"], input[type="email"], input[type="password"], input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+        }
+
+        input[type="number"]:focus, input[type="email"]:focus, input[type="password"]:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #3498db;
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .radio-item {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .radio-item input[type="radio"] {
+            display: none;
+        }
+
+        .radio-item label {
+            display: block;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+            margin-bottom: 0;
+        }
+
+        .radio-item label:hover {
+            border-color: #3498db;
+            background: #e8f4f8;
+            transform: translateY(-2px);
+        }
+
+        .radio-item input[type="radio"]:checked + label {
+            border-color: #3498db;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transition: all 0.5s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        button:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #7f8c8d;
+        }
+
+        .btn-secondary:hover {
+            background: #d5dbdb;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .error.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .dashboard {
+            text-align: center;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 20px 0;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .risk-low {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .risk-medium {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .risk-high {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .metric {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+        }
+
+        .navbar.show {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar .logo-small {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .navbar .logo-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 10px 0;
+            min-width: 180px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: block;
+            padding: 12px 20px;
+            color: #2c3e50;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+            color: #3498db;
+        }
+
+        .profile-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 30px;
+            font-weight: 700;
+            margin: 0 auto 15px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+            }
+            
+            .radio-item {
+                min-width: unset;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar" id="navbar">
+        <div class="logo-small">
+            <div class="logo-icon">❤️</div>
+            CardioHealth Monitor
+        </div>
+        <div class="user-menu">
+            <div class="user-avatar" id="userAvatar" onclick="toggleDropdown()">
+                <span id="userInitials">U</span>
+            </div>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <div class="dropdown-item" onclick="showProfile()">👤 Profile</div>
+                <div class="dropdown-item" onclick="showDashboard()">📊 Dashboard</div>
+                <div class="dropdown-item" onclick="newAssessment()">🔄 New Assessment</div>
+                <div class="dropdown-item" onclick="logout()">🚪 Logout</div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <!-- Sign In -->
+            <div id="signin" class="section active">
+                <div class="header">
+                    <div class="logo">❤️</div>
+                    <h1>Welcome Back</h1>
+                    <p class="subtitle">Sign in to your CardioHealth account</p>
+                </div>
+                <div class="form-group">
+                    <label for="signin-email">Email</label>
+                    <input type="email" id="signin-email" placeholder="Enter your email">
+                    <div class="error" id="signin-email-error">Please enter a valid email</div>
+                </div>
+                <div class="form-group">
+                    <label for="signin-password">Password</label>
+                    <input type="password" id="signin-password" placeholder="Enter your password">
+                    <div class="error" id="signin-password-error">Please enter your password</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="signIn()">Sign In</button>
+                </div>
+                <div style="text-align: center; margin-top: 20px; color: #7f8c8d;">
+                    Don't have an account? <a href="#" style="color: #3498db; text-decoration: none;" onclick="showSignup()">Sign up here</a>
+                </div>
+            </div>
+
+            <!-- Sign Up -->
+            <div id="signup" class="section">
+                <div class="header">
+                    <div class="logo">❤️</div>
+                    <h1>Create Account</h1>
+                    <p class="subtitle">Join CardioHealth Monitor today</p>
+                </div>
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" placeholder="Enter your full name">
+                    <div class="error" id="signup-name-error">Please enter your full name</div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email">
+                    <div class="error" id="signup-email-error">Please enter a valid email</div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a password">
+                    <div class="error" id="signup-password-error">Password must be at least 6 characters</div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-confirm">Confirm Password</label>
+                    <input type="password" id="signup-confirm" placeholder="Confirm your password">
+                    <div class="error" id="signup-confirm-error">Passwords do not match</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="signUp()">Create Account</button>
+                </div>
+                <div style="text-align: center; margin-top: 20px; color: #7f8c8d;">
+                    Already have an account? <a href="#" style="color: #3498db; text-decoration: none;" onclick="showSignin()">Sign in here</a>
+                </div>
+            </div>
+
+            <!-- Welcome Screen -->
+            <div id="welcome" class="section">
+                <div class="header">
+                    <div class="logo">❤️</div>
+                    <h1>CardioHealth Monitor</h1>
+                    <p class="subtitle">Advanced Cardiovascular Risk Assessment</p>
+                </div>
+                <div style="text-align: center;">
+                    <h2 id="welcome-message">Welcome back!</h2>
+                    <p style="color: #7f8c8d; line-height: 1.6; margin-bottom: 30px;">Our AI-powered system will analyze your cardiovascular risk factors and provide personalized health recommendations. The assessment takes just a few minutes.</p>
+                    <div class="button-group">
+                        <button class="btn-secondary" onclick="showProfile()">View Profile</button>
+                        <button class="btn-primary" onclick="startAssessment()">Start Assessment</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div id="progress-container" class="progress-container" style="display: none;">
+                <div id="progress-bar" class="progress-bar"></div>
+                <div id="progress-text" class="progress-text">Step 1 of 8</div>
+            </div>
+
+            <!-- Age Input -->
+            <div id="step-age" class="section">
+                <div class="header">
+                    <h2>What's your age?</h2>
+                    <p class="subtitle">This helps us assess age-related risk factors</p>
+                </div>
+                <div class="form-group">
+                    <label for="age">Age (years)</label>
+                    <input type="number" id="age" min="18" max="100" placeholder="Enter your age">
+                    <div class="error" id="age-error">Please enter a valid age between 18 and 100</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="goBack()">Back</button>
+                    <button class="btn-primary" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Sex Input -->
+            <div id="step-sex" class="section">
+                <div class="header">
+                    <h2>What's your biological sex?</h2>
+                    <p class="subtitle">Biological sex affects cardiovascular risk patterns</p>
+                </div>
+                <div class="form-group">
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="male" name="sex" value="Male">
+                            <label for="male">Male</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="female" name="sex" value="Female">
+                            <label for="female">Female</label>
+                        </div>
+                    </div>
+                    <div class="error" id="sex-error">Please select your biological sex</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="goBack()">Back</button>
+                    <button class="btn-primary" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Height Input -->
+            <div id="step-height" class="section">
+                <div class="header">
+                    <h2>What's your height?</h2>
+                    <p class="subtitle">Height is used to calculate your BMI</p>
+                </div>
+                <div class="form-group">
+                    <label for="height">Height (cm)</label>
+                    <input type="number" id="height" min="100" max="250" placeholder="Enter your height">
+                    <div class="error" id="height-error">Please enter a valid height</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="goBack()">Back</button>
+                    <button class="btn-primary" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Weight Input -->
+            <div id="step-weight" class="section">
+                <div class="header">
+                    <h2>What's your weight?</h2>
+                    <p class="subtitle">Weight helps calculate BMI and metabolic risk</p>
+                </div>
+                <div class="form-group">
+                    <label for="weight">Weight (kg)</label>
+                    <input type="number" id="weight" min="30" max="200" placeholder="Enter your weight">
+                    <div class="error" id="weight-error">Please enter a valid weight</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="goBack()">Back</button>
+                    <button class="btn-primary" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Diabetes Input -->
+            <div id="step-diabetes" class="section">
+                <div class="header">
+                    <h2>Do you have diabetes?</h2>
+                    <p class="subtitle">Diabetes significantly increases cardiovascular risk</p>
+                </div>
+                <div class="form-group">
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="diabetes-yes" name="diabetes" value="Yes">
+                            <label for="diabetes-yes">Yes</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="diabetes-no" name="diabetes" value="No">
+                            <label for="diabetes-no">No</label>
+                        </div>
+                    </div>
+                    <div class="error" id="diabetes-error">Please select an option</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="goBack()">Back</button>
+                    <button class="btn-primary" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Smoking Input -->
+            <div id="step-smoking" class="section">
+                <div class="header">
+                    <h2>Do you smoke?</h2>
+                    <p class="subtitle">Smoking is a major cardiovascular risk factor</p>
+                </div>
+                <div class="form-group">
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="smoking-yes" name="smoking" value="Yes">
+                            <label for="smoking-yes">Yes</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="smoking-no" name="smoking" value="No">
+                            <label for="smoking-no">No</label>
+                        </div>
+                    </div>
+                    <div class="error" id="smoking-error">Please select an option</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="goBack()">Back</button>
+                    <button class="btn-primary" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Blood Pressure Input -->
+            <div id="step-bp" class="section">
+                <div class="header">
+                    <h2>What's your blood pressure?</h2>
+                    <p class="subtitle">High blood pressure increases heart disease risk</p>
+                </div>
+                <div class="form-group">
+                    <label for="systolic">Systolic (top number)</label>
+                    <input type="number" id="systolic" min="80" max="200" placeholder="e.g., 120">
+                    <div class="error" id="systolic-error">Please enter a valid systolic pressure</div>
+                </div>
+                <div class="form-group">
+                    <label for="diastolic">Diastolic (bottom number)</label>
+                    <input type="number" id="diastolic" min="50" max="120" placeholder="e.g., 80">
+                    <div class="error" id="diastolic-error">Please enter a valid diastolic pressure</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="goBack()">Back</button>
+                    <button class="btn-primary" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Cholesterol Input -->
+            <div id="step-cholesterol" class="section">
+                <div class="header">
+                    <h2>What's your cholesterol level?</h2>
+                    <p class="subtitle">Total cholesterol level affects cardiovascular risk</p>
+                </div>
+                <div class="form-group">
+                    <label for="cholesterol">Total Cholesterol (mg/dL)</label>
+                    <input type="number" id="cholesterol" min="100" max="400" placeholder="e.g., 200">
+                    <div class="error" id="cholesterol-error">Please enter a valid cholesterol level</div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="goBack()">Back</button>
+                    <button class="btn-primary" onclick="calculateRisk()">Calculate Risk</button>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="results" class="section">
+                <div class="header">
+                    <h2>Your Cardiovascular Risk Assessment</h2>
+                    <p class="subtitle">Based on your health information</p>
+                </div>
+                <div class="dashboard">
+                    <div id="risk-badge" class="risk-badge">
+                        <!-- Risk level will be inserted here -->
+                    </div>
+                    <div id="risk-description" style="margin: 20px 0; color: #7f8c8d;">
+                        <!-- Risk description will be inserted here -->
+                    </div>
+                    <div id="recommendations" style="text-align: left; margin: 30px 0;">
+                        <!-- Recommendations will be inserted here -->
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="showProfile()">View Profile</button>
+                    <button class="btn-primary" onclick="newAssessment()">New Assessment</button>
+                </div>
+            </div>
+
+            <!-- Profile -->
+            <div id="profile" class="section">
+                <div class="header">
+                    <div class="profile-avatar" id="profileAvatar">U</div>
+                    <h1 id="profileName">User Profile</h1>
+                    <p class="subtitle">Your health information</p>
+                </div>
+                
+                <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin: 15px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
+                        <span style="font-weight: 600; color: #2c3e50;">Last Risk Assessment:</span>
+                        <span style="color: #7f8c8d;" id="profile-last-risk">-</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #2c3e50;">Assessment History</h3>
+                    <div id="history-container">
+                        <p style="text-align: center; color: #7f8c8d; padding: 20px;">No assessments completed yet</p>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="showDashboard()">Back to Dashboard</button>
+                    <button class="btn-primary" onclick="newAssessment()">New Assessment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+    // CardioHealth Monitor JavaScript
+// State management
+let currentUser = null;
+let currentStep = 0;
+let assessmentData = {};
+let userDatabase = [];
+let assessmentHistory = [];
+
+// Assessment steps flow
+const steps = [
+    'welcome',
+    'step-age',
+    'step-sex', 
+    'step-height',
+    'step-weight',
+    'step-diabetes',
+    'step-smoking',
+    'step-bp',
+    'step-cholesterol'
+];
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
+
+function initializeApp() {
+    // Load saved data from memory
+    loadUserData();
+    
+    // Check if user is logged in
+    if (currentUser) {
+        showNavbar();
+        showWelcome();
+    } else {
+        hideNavbar();
+        showSignin();
+    }
+}
+
+// Authentication Functions
+function showSignin() {
+    hideAllSections();
+    document.getElementById('signin').classList.add('active');
+    hideNavbar();
+    clearErrors();
+}
+
+function showSignup() {
+    hideAllSections();
+    document.getElementById('signup').classList.add('active');
+    hideNavbar();
+    clearErrors();
+}
+
+function signIn() {
+    const email = document.getElementById('signin-email').value.trim();
+    const password = document.getElementById('signin-password').value;
+    
+    clearErrors();
+    let isValid = true;
+    
+    // Validate email
+    if (!email || !isValidEmail(email)) {
+        showError('signin-email-error');
+        isValid = false;
+    }
+    
+    // Validate password
+    if (!password) {
+        showError('signin-password-error');
+        isValid = false;
+    }
+    
+    if (!isValid) return;
+    
+    // Check if user exists
+    const user = userDatabase.find(u => u.email === email && u.password === password);
+    
+    if (user) {
+        currentUser = user;
+        updateUserInitials();
+        showNavbar();
+        showWelcome();
+        saveUserData();
+    } else {
+        // For demo purposes, allow any valid email/password combination
+        currentUser = {
+            id: Date.now(),
+            name: email.split('@')[0],
+            email: email,
+            password: password
+        };
+        userDatabase.push(currentUser);
+        updateUserInitials();
+        showNavbar();
+        showWelcome();
+        saveUserData();
+    }
+}
+
+function signUp() {
+    const name = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const confirmPassword = document.getElementById('signup-confirm').value;
+    
+    clearErrors();
+    let isValid = true;
+    
+    // Validate name
+    if (!name) {
+        showError('signup-name-error');
+        isValid = false;
+    }
+    
+    // Validate email
+    if (!email || !isValidEmail(email)) {
+        showError('signup-email-error');
+        isValid = false;
+    }
+    
+    // Validate password
+    if (!password || password.length < 6) {
+        showError('signup-password-error');
+        isValid = false;
+    }
+    
+    // Validate password confirmation
+    if (password !== confirmPassword) {
+        showError('signup-confirm-error');
+        isValid = false;
+    }
+    
+    if (!isValid) return;
+    
+    // Check if user already exists
+    const existingUser = userDatabase.find(u => u.email === email);
+    if (existingUser) {
+        showError('signup-email-error');
+        document.getElementById('signup-email-error').textContent = 'Email already registered';
+        return;
+    }
+    
+    // Create new user
+    currentUser = {
+        id: Date.now(),
+        name: name,
+        email: email,
+        password: password
+    };
+    
+    userDatabase.push(currentUser);
+    updateUserInitials();
+    showNavbar();
+    showWelcome();
+    saveUserData();
+}
+
+function logout() {
+    currentUser = null;
+    currentStep = 0;
+    assessmentData = {};
+    hideNavbar();
+    showSignin();
+    saveUserData();
+}
+
+// Navigation Functions
+function showWelcome() {
+    hideAllSections();
+    document.getElementById('welcome').classList.add('active');
+    document.getElementById('progress-container').style.display = 'none';
+    
+    if (currentUser) {
+        document.getElementById('welcome-message').textContent = `Welcome back, ${currentUser.name}!`;
+    }
+}
+
+function showProfile() {
+    hideAllSections();
+    document.getElementById('profile').classList.add('active');
+    document.getElementById('progress-container').style.display = 'none';
+    
+    // Update profile information
+    document.getElementById('profileName').textContent = currentUser.name;
+    document.getElementById('profileAvatar').textContent = getInitials(currentUser.name);
+    
+    // Update last risk assessment
+    const userHistory = assessmentHistory.filter(h => h.userId === currentUser.id);
+    if (userHistory.length > 0) {
+        const lastAssessment = userHistory[userHistory.length - 1];
+        document.getElementById('profile-last-risk').textContent = lastAssessment.riskLevel;
+        
+        // Display history
+        displayAssessmentHistory(userHistory);
+    }
+}
+
+function showDashboard() {
+    showWelcome();
+}
+
+function startAssessment() {
+    currentStep = 1;
+    assessmentData = {};
+    updateProgress();
+    showStep(steps[currentStep]);
+}
+
+function newAssessment() {
+    startAssessment();
+}
+
+// Assessment Flow Functions
+function nextStep() {
+    if (validateCurrentStep()) {
+        saveCurrentStepData();
+        currentStep++;
+        
+        if (currentStep < steps.length) {
+            updateProgress();
+            showStep(steps[currentStep]);
+        }
+    }
+}
+
+function goBack() {
+    if (currentStep > 1) {
+        currentStep--;
+        updateProgress();
+        showStep(steps[currentStep]);
+    } else {
+        showWelcome();
+    }
+}
+
+function showStep(stepId) {
+    hideAllSections();
+    document.getElementById(stepId).classList.add('active');
+    document.getElementById('progress-container').style.display = 'block';
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    
+    const progress = ((currentStep - 1) / (steps.length - 2)) * 100; // Subtract 2 for welcome and results
+    progressBar.style.width = progress + '%';
+    progressText.textContent = `Step ${currentStep} of ${steps.length - 1}`;
+}
+
+// Validation Functions
+function validateCurrentStep() {
+    clearErrors();
+    
+    switch(steps[currentStep]) {
+        case 'step-age':
+            return validateAge();
+        case 'step-sex':
+            return validateSex();
+        case 'step-height':
+            return validateHeight();
+        case 'step-weight':
+            return validateWeight();
+        case 'step-diabetes':
+            return validateDiabetes();
+        case 'step-smoking':
+            return validateSmoking();
+        case 'step-bp':
+            return validateBloodPressure();
+        case 'step-cholesterol':
+            return validateCholesterol();
+        default:
+            return true;
+    }
+}
+
+function validateAge() {
+    const age = parseInt(document.getElementById('age').value);
+    if (!age || age < 18 || age > 100) {
+        showError('age-error');
+        return false;
+    }
+    return true;
+}
+
+function validateSex() {
+    const sex = document.querySelector('input[name="sex"]:checked');
+    if (!sex) {
+        showError('sex-error');
+        return false;
+    }
+    return true;
+}
+
+function validateHeight() {
+    const height = parseInt(document.getElementById('height').value);
+    if (!height || height < 100 || height > 250) {
+        showError('height-error');
+        return false;
+    }
+    return true;
+}
+
+function validateWeight() {
+    const weight = parseInt(document.getElementById('weight').value);
+    if (!weight || weight < 30 || weight > 200) {
+        showError('weight-error');
+        return false;
+    }
+    return true;
+}
+
+function validateDiabetes() {
+    const diabetes = document.querySelector('input[name="diabetes"]:checked');
+    if (!diabetes) {
+        showError('diabetes-error');
+        return false;
+    }
+    return true;
+}
+
+function validateSmoking() {
+    const smoking = document.querySelector('input[name="smoking"]:checked');
+    if (!smoking) {
+        showError('smoking-error');
+        return false;
+    }
+    return true;
+}
+
+function validateBloodPressure() {
+    const systolic = parseInt(document.getElementById('systolic').value);
+    const diastolic = parseInt(document.getElementById('diastolic').value);
+    
+    let isValid = true;
+    
+    if (!systolic || systolic < 80 || systolic > 200) {
+        showError('systolic-error');
+        isValid = false;
+    }
+    
+    if (!diastolic || diastolic < 50 || diastolic > 120) {
+        showError('diastolic-error');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+function validateCholesterol() {
+    const cholesterol = parseInt(document.getElementById('cholesterol').value);
+    if (!cholesterol || cholesterol < 100 || cholesterol > 400) {
+        showError('cholesterol-error');
+        return false;
+    }
+    return true;
+}
+
+// Data Collection Functions
+function saveCurrentStepData() {
+    switch(steps[currentStep]) {
+        case 'step-age':
+            assessmentData.age = parseInt(document.getElementById('age').value);
+            break;
+        case 'step-sex':
+            assessmentData.sex = document.querySelector('input[name="sex"]:checked').value;
+            break;
+        case 'step-height':
+            assessmentData.height = parseInt(document.getElementById('height').value);
+            break;
+        case 'step-weight':
+            assessmentData.weight = parseInt(document.getElementById('weight').value);
+            break;
+        case 'step-diabetes':
+            assessmentData.diabetes = document.querySelector('input[name="diabetes"]:checked').value === 'Yes';
+            break;
+        case 'step-smoking':
+            assessmentData.smoking = document.querySelector('input[name="smoking"]:checked').value === 'Yes';
+            break;
+        case 'step-bp':
+            assessmentData.systolic = parseInt(document.getElementById('systolic').value);
+            assessmentData.diastolic = parseInt(document.getElementById('diastolic').value);
+            break;
+        case 'step-cholesterol':
+            assessmentData.cholesterol = parseInt(document.getElementById('cholesterol').value);
+            break;
+    }
+}
+
+// Risk Calculation Functions
+function calculateRisk() {
+    if (!validateCurrentStep()) return;
+    
+    saveCurrentStepData();
+    
+    // Calculate BMI
+    const bmi = assessmentData.weight / ((assessmentData.height / 100) ** 2);
+    assessmentData.bmi = bmi;
+    
+    // Calculate risk score using a simplified cardiovascular risk model
+    let riskScore = 0;
+    
+    // Age factor
+    if (assessmentData.age >= 65) riskScore += 3;
+    else if (assessmentData.age >= 55) riskScore += 2;
+    else if (assessmentData.age >= 45) riskScore += 1;
+    
+    // Sex factor (males generally have higher risk at younger ages)
+    if (assessmentData.sex === 'Male' && assessmentData.age < 55) riskScore += 1;
+    
+    // BMI factor
+    if (bmi >= 30) riskScore += 2;
+    else if (bmi >= 25) riskScore += 1;
+    
+    // Diabetes factor
+    if (assessmentData.diabetes) riskScore += 3;
+    
+    // Smoking factor
+    if (assessmentData.smoking) riskScore += 2;
+    
+    // Blood pressure factor
+    if (assessmentData.systolic >= 160 || assessmentData.diastolic >= 100) riskScore += 3;
+    else if (assessmentData.systolic >= 140 || assessmentData.diastolic >= 90) riskScore += 2;
+    else if (assessmentData.systolic >= 130 || assessmentData.diastolic >= 85) riskScore += 1;
+    
+    // Cholesterol factor
+    if (assessmentData.cholesterol >= 280) riskScore += 2;
+    else if (assessmentData.cholesterol >= 240) riskScore += 1;
+    
+    // Determine risk level
+    let riskLevel, riskClass, riskDescription;
+    
+    if (riskScore <= 3) {
+        riskLevel = 'Low Risk';
+        riskClass = 'risk-low';
+        riskDescription = 'Your cardiovascular risk is relatively low. Continue maintaining healthy lifestyle habits.';
+    } else if (riskScore <= 7) {
+        riskLevel = 'Moderate Risk';
+        riskClass = 'risk-medium';
+        riskDescription = 'Your cardiovascular risk is moderate. Consider lifestyle modifications and regular monitoring.';
+    } else {
+        riskLevel = 'High Risk';
+        riskClass = 'risk-high';
+        riskDescription = 'Your cardiovascular risk is elevated. Please consult with your healthcare provider for a comprehensive evaluation.';
+    }
+    
+    // Save assessment to history
+    const assessment = {
+        id: Date.now(),
+        userId: currentUser.id,
+        date: new Date().toLocaleDateString(),
+        riskLevel: riskLevel,
+        riskScore: riskScore,
+        data: { ...assessmentData }
+    };
+    
+    assessmentHistory.push(assessment);
+    saveUserData();
+    
+    // Display results
+    displayResults(riskLevel, riskClass, riskDescription, riskScore);
+}
+
+function displayResults(riskLevel, riskClass, riskDescription, riskScore) {
+    hideAllSections();
+    document.getElementById('results').classList.add('active');
+    document.getElementById('progress-container').style.display = 'none';
+    
+    // Display risk badge
+    const riskBadge = document.getElementById('risk-badge');
+    riskBadge.textContent = riskLevel;
+    riskBadge.className = `risk-badge ${riskClass}`;
+    
+    // Display risk description
+    document.getElementById('risk-description').textContent = riskDescription;
+    
+    // Generate recommendations
+    const recommendations = generateRecommendations();
+    document.getElementById('recommendations').innerHTML = recommendations;
+}
+
+function generateRecommendations() {
+    let recommendations = '<h3 style="color: #2c3e50; margin-bottom: 15px;">Personalized Recommendations</h3>';
+    const data = assessmentData;
+    
+    // BMI recommendations
+    if (data.bmi >= 30) {
+        recommendations += '<div class="metric"><div class="metric-label">Weight Management</div><div class="metric-value" style="font-size: 16px; color: #e74c3c;">Consider weight loss through diet and exercise. Aim for a BMI below 25.</div></div>';
+    } else if (data.bmi >= 25) {
+        recommendations += '<div class="metric"><div class="metric-label">Weight Management</div><div class="metric-value" style="font-size: 16px; color: #f39c12;">Maintain current weight or consider modest weight loss.</div></div>';
+    } else {
+        recommendations += '<div class="metric"><div class="metric-label">Weight Management</div><div class="metric-value" style="font-size: 16px; color: #2ecc71;">Maintain your healthy weight range.</div></div>';
+    }
+    
+    // Blood pressure recommendations
+    if (data.systolic >= 140 || data.diastolic >= 90) {
+        recommendations += '<div class="metric"><div class="metric-label">Blood Pressure</div><div class="metric-value" style="font-size: 16px; color: #e74c3c;">Monitor blood pressure regularly. Consider medication if lifestyle changes aren\'t sufficient.</div></div>';
+    } else if (data.systolic >= 130 || data.diastolic >= 85) {
+        recommendations += '<div class="metric"><div class="metric-label">Blood Pressure</div><div class="metric-value" style="font-size: 16px; color: #f39c12;">Monitor blood pressure and focus on lifestyle modifications.</div></div>';
+    }
+    
+    // Cholesterol recommendations
+    if (data.cholesterol >= 240) {
+        recommendations += '<div class="metric"><div class="metric-label">Cholesterol</div><div class="metric-value" style="font-size: 16px; color: #e74c3c;">Work with your doctor to lower cholesterol through diet, exercise, and possibly medication.</div></div>';
+    } else if (data.cholesterol >= 200) {
+        recommendations += '<div class="metric"><div class="metric-label">Cholesterol</div><div class="metric-value" style="font-size: 16px; color: #f39c12;">Consider dietary changes to lower cholesterol levels.</div></div>';
+    }
+    
+    // Smoking recommendations
+    if (data.smoking) {
+        recommendations += '<div class="metric"><div class="metric-label">Smoking Cessation</div><div class="metric-value" style="font-size: 16px; color: #e74c3c;">Quitting smoking is the single most important step for your cardiovascular health.</div></div>';
+    }
+    
+    // Diabetes recommendations
+    if (data.diabetes) {
+        recommendations += '<div class="metric"><div class="metric-label">Diabetes Management</div><div class="metric-value" style="font-size: 16px; color: #e74c3c;">Maintain good blood sugar control and regular monitoring.</div></div>';
+    }
+    
+    // General recommendations
+    recommendations += '<div class="metric"><div class="metric-label">General Health</div><div class="metric-value" style="font-size: 16px; color: #2ecc71;">Regular exercise (150 min/week), healthy diet, stress management, and adequate sleep.</div></div>';
+    
+    return recommendations;
+}
+
+// Utility Functions
+function hideAllSections() {
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(section => {
+        section.classList.remove('active');
+    });
+}
+
+function showNavbar() {
+    document.getElementById('navbar').classList.add('show');
+    document.querySelector('.container').style.paddingTop = '80px';
+}
+
+function hideNavbar() {
+    document.getElementById('navbar').classList.remove('show');
+    document.querySelector('.container').style.paddingTop = '20px';
+}
+
+function updateUserInitials() {
+    if (currentUser) {
+        const initials = getInitials(currentUser.name);
+        document.getElementById('userInitials').textContent = initials;
+    }
+}
+
+function getInitials(name) {
+    return name.split(' ').map(word => word[0]).join('').toUpperCase().substring(0, 2);
+}
+
+function toggleDropdown() {
+    const dropdown = document.getElementById('dropdownMenu');
+    dropdown.classList.toggle('show');
+}
+
+function showError(errorId) {
+    const errorElement = document.getElementById(errorId);
+    errorElement.classList.add('show');
+}
+
+function clearErrors() {
+    const errors = document.querySelectorAll('.error');
+    errors.forEach(error => {
+        error.classList.remove('show');
+    });
+}
+
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function displayAssessmentHistory(history) {
+    const container = document.getElementById('history-container');
+    
+    if (history.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 20px;">No assessments completed yet</p>';
+        return;
+    }
+    
+    let historyHtml = '';
+    history.reverse().forEach(assessment => {
+        const riskClass = assessment.riskLevel.includes('Low') ? 'risk-low' : 
+                         assessment.riskLevel.includes('Moderate') ? 'risk-medium' : 'risk-high';
+        
+        historyHtml += `
+            <div style="background: white; border-radius: 8px; padding: 15px; margin: 10px 0; border-left: 4px solid ${getRiskColor(riskClass)};">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 600; color: #2c3e50;">${assessment.date}</div>
+                        <div style="color: #7f8c8d; font-size: 14px;">Risk Score: ${assessment.riskScore}</div>
+                    </div>
+                    <div style="background: ${getRiskColor(riskClass)}; color: white; padding: 5px 15px; border-radius: 12px; font-size: 14px;">
+                        ${assessment.riskLevel}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = historyHtml;
+}
+
+function getRiskColor(riskClass) {
+    switch(riskClass) {
+        case 'risk-low': return '#2ecc71';
+        case 'risk-medium': return '#f39c12';
+        case 'risk-high': return '#e74c3c';
+        default: return '#7f8c8d';
+    }
+}
+
+// Data Persistence Functions (using in-memory storage)
+function saveUserData() {
+    // In a real application, this would save to a database
+    // For demo purposes, we're using in-memory storage only
+}
+
+function loadUserData() {
+    // In a real application, this would load from a database
+    // For demo purposes, we start with empty data
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('dropdownMenu');
+    const avatar = document.getElementById('userAvatar');
+    
+    if (!avatar.contains(event.target)) {
+        dropdown.classList.remove('show');
+    }
+});
+
+// Handle form submission on Enter key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        
+        if (document.getElementById('signin').classList.contains('active')) {
+            signIn();
+        } else if (document.getElementById('signup').classList.contains('active')) {
+            signUp();
+        } else if (currentStep > 0 && currentStep < steps.length - 1) {
+            nextStep();
+        } else if (steps[currentStep] === 'step-cholesterol') {
+            calculateRisk();
+        }
+    }
+});
+</script>
